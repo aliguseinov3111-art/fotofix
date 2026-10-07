@@ -1,0 +1,1487 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f3f4f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0e0f" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Фотофикс">
+<meta name="format-detection" content="telephone=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Фотофиксация заполненных контейнеров: фото с адресом, координатами, датой и временем.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Фотофиксация</title>
+<style>
+:root{
+  --bg:#f3f4f5; --surface:#ffffff; --surface-2:#f3f4f5; --text:#0b1f35; --muted:#5e6a78; --line:#dbdee1;
+  --accent:#ef3124; --accent-press:#d4281c; --accent-ink:#ffffff; --accent-soft:#fdebea;
+  --ok:#0d9f55; --warn:#d98200; --bad:#ef3124;
+  --r:20px; --rb:16px;
+  --mono:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0e0e0f; --surface:#1c1c1e; --surface-2:#2a2a2e; --text:#ffffff; --muted:#a0a6b0; --line:#34343a;
+    --accent:#ef3124; --accent-press:#ff4a3d; --accent-ink:#ffffff; --accent-soft:#3b1715;
+    --ok:#3ccb7f; --warn:#ffb341; --bad:#ff5a4e;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+body.locked{overflow:hidden}
+button,input,textarea{font-family:inherit;color:inherit}
+button{cursor:pointer}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0);left:0;top:0}
+.muted{color:var(--muted)} .sm{font-size:14px} .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.warn{color:var(--warn)} .bad{color:var(--bad)}
+
+header.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px 10px;background:var(--bg)}
+.hl{min-width:0}
+.brand{font-weight:800;font-size:26px;letter-spacing:-.02em;line-height:1.1}
+.who{font-size:14px;color:var(--muted);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.who b{color:var(--text);font-weight:600}
+.hr{display:flex;align-items:center;gap:8px;flex:none}
+.chip{display:inline-flex;align-items:center;gap:7px;border:0;background:var(--surface);border-radius:999px;
+  padding:9px 13px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.iconbtn{width:42px;height:42px;border:0;border-radius:50%;background:var(--surface);display:grid;place-items:center;color:var(--text)}
+.iconbtn svg{width:22px;height:22px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none;display:inline-block}
+.lv-good .dot{background:var(--ok)} .lv-mid .dot{background:var(--warn)} .lv-poor .dot,.lv-bad .dot{background:var(--bad)}
+.lv-search .dot,.lv-wait .dot{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (min-width:760px){ header.top{padding-left:calc(50% - 344px);padding-right:calc(50% - 344px)} }
+
+main{padding:0 16px calc(28px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto}
+.card{display:block;background:var(--surface);border-radius:var(--r);padding:16px;margin:0 0 12px}
+.ttl{font-weight:700;font-size:17px}
+.label{display:block;font-size:14px;color:var(--muted);margin:0 0 8px}
+input[type=text],textarea{width:100%;font-size:16px;padding:14px 16px;border-radius:var(--rb);border:1.5px solid transparent;background:var(--surface);outline:none}
+input[type=text]:focus,textarea:focus{border-color:var(--text)}
+textarea{resize:vertical;min-height:88px;line-height:1.35}
+.field{display:block;margin:0 0 16px}
+
+.banner{background:var(--accent-soft);border-radius:var(--r);padding:14px 16px;margin:4px 0 4px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.banner.bad{background:transparent;border:1.5px solid var(--bad)}
+.banner .bx{flex:1}
+.banner b{display:block;font-size:16px;margin-bottom:3px}
+.banner .lnk{border:0;background:none;padding:0;margin-top:8px;color:var(--accent);font-weight:700;font-size:15px}
+.x{border:0;background:none;font-size:24px;line-height:1;padding:0 2px;color:var(--muted)}
+
+.hero{display:flex;flex-direction:column;align-items:center;gap:12px;padding:26px 0 22px}
+.shutter{width:120px;height:120px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;
+  border:8px solid var(--bg);box-shadow:0 0 0 3px var(--accent);transition:transform .08s,background .1s;user-select:none;-webkit-user-select:none}
+.shutter:active{transform:scale(.94);background:var(--accent-press)}
+.shutter.off{background:var(--line);box-shadow:0 0 0 3px var(--line);color:var(--muted)}
+.shutter svg{width:48px;height:48px}
+.shutterHint{font-size:16px;color:var(--muted);text-align:center}
+.gpsLine{font-size:14px;text-align:center;max-width:460px;color:var(--warn)}
+.gpsLine.bad{color:var(--bad)}
+.pend{font-size:14px;color:var(--muted);text-align:center;margin:-8px 0 12px}
+.pend.bad{color:var(--bad)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;min-height:56px;border-radius:var(--rb);
+  border:0;background:var(--surface);color:var(--text);font-size:16px;font-weight:700;line-height:1.15;padding:6px 16px}
+.card .btn,.sheetFoot .btn,.modalCard .btn{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.primary:active{background:var(--accent-press)}
+.btn.danger{color:var(--bad)}
+.btn.ghost{background:transparent}
+.btn.sm{min-height:42px;font-size:15px;padding:4px 14px;border-radius:12px}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.col{display:flex;flex-direction:column;gap:8px}
+
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{flex:1 1 0;min-width:72px;border:0;background:var(--surface);border-radius:14px;min-height:48px;font-size:16px;font-weight:700;color:var(--text);padding:0 10px}
+.seg button.on{background:var(--text);color:var(--surface)}
+
+.day{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:22px 2px 10px}
+.day b{font-size:17px;font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+@media (min-width:560px){ .grid{grid-template-columns:repeat(4,1fr)} }
+.shot{position:relative;aspect-ratio:1/1;border:0;padding:0;border-radius:14px;overflow:hidden;background:var(--surface)}
+.shot img{width:100%;height:100%;object-fit:cover;display:block}
+.shot .tm{position:absolute;left:6px;bottom:6px;background:rgba(11,31,53,.75);color:#fff;font-size:12px;font-weight:700;padding:2px 7px;border-radius:8px}
+.shot .st{position:absolute;right:6px;top:6px;min-width:22px;height:22px;border-radius:11px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;padding:0 5px}
+.shot .st.sent{background:var(--ok)}
+.shot .st.flag{background:var(--warn);left:6px;right:auto}
+.empty{text-align:center;padding:28px 16px;color:var(--muted)}
+
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column}
+.sheetHead{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(env(safe-area-inset-top) + 6px) 8px 6px;background:var(--bg);min-height:54px}
+.sheetHead b{font-size:17px;font-weight:800;text-align:center}
+.link{border:0;background:none;color:var(--accent);font-size:16px;font-weight:700;padding:10px 8px;min-width:96px;text-align:left}
+.link.r{text-align:right}
+.sheetBody{flex:1;overflow:auto;padding:4px 16px 20px;-webkit-overflow-scrolling:touch}
+.sheetBody>*{max-width:720px;margin-left:auto;margin-right:auto}
+.sheetFoot{padding:10px 12px calc(env(safe-area-inset-bottom) + 10px);background:var(--surface)}
+.sheetFoot .btn{width:100%;max-width:720px;display:flex;margin:0 auto}
+.sheetFoot .btn.primary{background:var(--accent)}
+.preview{position:relative;display:flex;justify-content:center;align-items:center;min-height:200px;background:#000;border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.preview canvas{display:block}
+.spinner{position:absolute;width:36px;height:36px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.facts{background:var(--surface);border-radius:var(--r);padding:6px 16px;margin:0 0 16px}
+.fact{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+.fact:first-child{border-top:0}
+.fact .k{width:86px;flex:none;color:var(--muted)}
+.fact .v{flex:1;min-width:0;word-break:break-word}
+.fact .v .dot{margin-right:6px;vertical-align:middle;position:relative;top:-1px}
+.lockNote{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:-8px 2px 16px}
+.vwImg{display:block;width:100%;height:auto;border-radius:var(--r);background:#000;margin-bottom:12px}
+
+#onboard{z-index:25}   /* открывается и поверх настроек */
+.obHero{padding:28px 2px 18px}
+.obTitle{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-bottom:8px}
+.codeInput{font:700 28px/1 var(--mono)!important;letter-spacing:.06em;text-align:center;padding:18px 12px!important}
+.err{color:var(--bad);font-size:15px;margin:10px 2px 0}
+
+.modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.modalCard{width:100%;max-width:520px;background:var(--surface);border-radius:24px 24px 0 0;padding:20px 16px calc(env(safe-area-inset-bottom) + 14px);display:flex;flex-direction:column;gap:10px}
+.mTitle{font-weight:800;font-size:20px}
+.bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));z-index:40;background:var(--text);color:var(--surface);
+  padding:12px 18px;border-radius:14px;font-size:15px;font-weight:600;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.25);text-align:center}
+body.locked #toast{bottom:auto;top:calc(env(safe-area-inset-top) + 60px)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="hl">
+    <div class="brand">Фотофиксация</div>
+    <div class="who" id="who"></div>
+  </div>
+  <div class="hr">
+    <button class="chip lv-search" id="gpsChip" type="button" aria-label="Состояние GPS"><span class="dot"></span><span id="chipText">GPS…</span></button>
+    <button class="iconbtn" id="setBtn" type="button" aria-label="Настройки"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  </div>
+</header>
+
+<main>
+  <div class="banner" id="banner" hidden>
+    <div class="bx"><b id="bnTitle"></b><span id="bnText"></span><br><button class="lnk" id="bnAct" type="button" hidden></button></div>
+    <button class="x" id="bnClose" type="button" aria-label="Скрыть">×</button>
+  </div>
+
+  <div class="hero">
+    <label for="fileInput" class="shutter" id="shutter" role="button" aria-label="Сфотографировать контейнер">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M3.5 8.5h3.2l1.8-2.8h7l1.8 2.8h3.2v10.8h-17z"/><circle cx="12" cy="13.6" r="3.6"/></svg>
+    </label>
+    <div class="shutterHint" id="shutterHint"></div>
+    <div class="gpsLine" id="gpsLine" hidden></div>
+  </div>
+  <div class="pend" id="pending" hidden></div>
+  <button class="btn primary wide" id="sendBtn" type="button" hidden></button>
+  <div id="shots"></div>
+</main>
+
+<input type="file" id="fileInput" accept="image/*" capture="environment" class="vh" tabindex="-1" aria-hidden="true">
+
+<!-- ВХОД ПО КОДУ -->
+<div class="sheet" id="onboard" hidden>
+  <div class="sheetHead"><span class="link"></span><b></b><button class="link r" id="obClose" type="button">Закрыть</button></div>
+  <div class="sheetBody">
+    <div class="obHero">
+      <div class="obTitle">Вход по коду</div>
+      <div class="muted">Введите код подрядчика, который выдал заказчик. Это нужно один раз — дальше приложение помнит вас.</div>
+    </div>
+    <input id="obCode" class="codeInput" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="0000-0000-0000" maxlength="14">
+    <div class="err" id="obErr" hidden></div>
+    <button class="btn primary wide" id="obGo" type="button" style="margin-top:16px">Войти</button>
+  </div>
+</div>
+
+<!-- НОВЫЙ СНИМОК -->
+<div class="sheet" id="review" hidden>
+  <div class="sheetHead">
+    <button class="link" id="rvCancel" type="button">Отмена</button>
+    <b>Снимок <span class="muted" id="rvNum"></span></b>
+    <span class="link r"></span>
+  </div>
+  <div class="sheetBody">
+    <div class="preview"><canvas id="rvCanvas" width="0" height="0"></canvas><div class="spinner" id="rvSpin"></div></div>
+    <div class="facts">
+      <div class="fact"><div class="k">Время</div><div class="v" id="fTime"></div></div>
+      <div class="fact"><div class="k">Адрес</div><div class="v" id="fAddr"></div></div>
+      <div class="fact"><div class="k">GPS</div><div class="v" id="fGps"></div></div>
+    </div>
+    <div class="lockNote"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Заполняется автоматически, изменить нельзя</div>
+    <div class="field"><span class="label">Размер контейнера</span>
+      <div class="seg" id="rvSizes"></div>
+      <input id="rvVolOther" type="text" inputmode="decimal" maxlength="5" placeholder="Объём, м³" style="margin-top:8px" hidden></div>
+    <label class="field"><span class="label">Комментарий (можно надиктовать)</span>
+      <textarea id="rvComment" rows="3" maxlength="1000" autocapitalize="sentences" placeholder="Например: контейнер переполнен, мусор рядом"></textarea></label>
+  </div>
+  <div class="sheetFoot"><button class="btn primary" id="rvSave" type="button">Сохранить</button></div>
+</div>
+
+<!-- ПРОСМОТР СНИМКА -->
+<div class="sheet" id="viewer" hidden>
+  <div class="sheetHead">
+    <button class="link" id="vwClose" type="button">Закрыть</button>
+    <b id="vwTitle"></b>
+    <span class="link r"></span>
+  </div>
+  <div class="sheetBody">
+    <img id="vwImg" class="vwImg" alt="">
+    <div class="facts" id="vwInfo"></div>
+  </div>
+  <div class="sheetFoot"><button class="btn danger" id="vwDel" type="button">Удалить снимок</button></div>
+</div>
+
+<!-- НАСТРОЙКИ -->
+<div class="sheet" id="settings" hidden>
+  <div class="sheetHead"><span class="link"></span><b>Настройки</b><button class="link r" id="setClose" type="button">Закрыть</button></div>
+  <div class="sheetBody">
+    <div class="card">
+      <div class="label" style="margin-bottom:2px">Подрядчик</div>
+      <div class="ttl" id="setWho"></div>
+      <button class="btn sm" id="changeWho" type="button" style="margin-top:12px">Сменить код</button>
+    </div>
+    <div class="card">
+      <div class="ttl">Установка на телефон</div>
+      <div class="muted sm" id="installText" style="margin-top:4px"></div>
+      <button class="btn primary wide" id="installBtn" type="button" style="margin-top:12px" hidden>Установить приложение</button>
+    </div>
+    <div class="card">
+      <div class="ttl">Снимки на телефоне</div>
+      <div class="muted sm" id="storeInfo" style="margin:4px 0 12px"></div>
+      <div class="col">
+        <button class="btn" id="resendAll" type="button">Отправить все снимки заново</button>
+        <button class="btn danger" id="clearSent" type="button">Удалить отправленные с телефона</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ttl">О приложении</div>
+      <div class="muted sm" id="about" style="margin-top:4px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ОТЧЁТ -->
+<div class="modal" id="exp" hidden>
+  <div class="modalCard">
+    <div class="mTitle" id="expTitle"></div>
+    <div class="muted" id="expText"></div>
+    <div class="bar" id="expBarWrap"><i id="expBar"></i></div>
+    <button class="btn primary" id="expSend" type="button" hidden>Отправить</button>
+    <button class="btn ghost" id="expClose" type="button">Закрыть</button>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+'use strict';
+const VERSION = '3.1.1';
+const BUILD = '20261007-155536';   // deploy.sh подставляет метку сборки; по ней телефон понимает, что вышла новая версия
+const PHOTO = { maxSide: 1600, quality: 0.85, stampK: 0.026 };  // размер фиксирован заказчиком
+const CLOCK_WARN_MS = 120000;     // расхождение часов телефона с сервером, при котором ставится отметка
+const FRESH_MS = 3 * 60000;       // фото старше — не принимается (галерея)
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* ===================== настройки телефона ===================== */
+const DEF = { lastNum: null, hideBanner: false, code: null, contractor: null, cfgHash: null, vol: null };
+const S = (() => { try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem('fotofix.s') || '{}')); } catch (e) { return Object.assign({}, DEF); } })();
+function saveS() { try { localStorage.setItem('fotofix.s', JSON.stringify(S)); } catch (e) {} }
+
+/* ===================== вход по коду подрядчика ===================== */
+const auth = { cfg: null, hash: null, name: null };
+const sizes = () => (auth.cfg && Array.isArray(auth.cfg.sizes) && auth.cfg.sizes.length) ? auth.cfg.sizes : [8, 20, 27];
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const hex = u8 => Array.from(u8, b => b.toString(16).padStart(2, '0')).join('');
+async function sha256hex(text) { return hex(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)))); }
+async function loadConfig() {
+  try {
+    const r = await fetch('config.json', { cache: 'no-cache' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const txt = await r.text();
+    auth.cfg = JSON.parse(txt); auth.hash = await sha256hex(txt);
+  } catch (e) { if (!auth.cfg) { auth.cfg = null; auth.hash = null; } }
+}
+async function unlock(code) {
+  const cfg = auth.cfg; if (!cfg || !cfg.kdf) return null;
+  try {
+    const te = new TextEncoder();
+    const base = await crypto.subtle.importKey('raw', te.encode(code), 'PBKDF2', false, ['deriveBits']);
+    const kb = new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: b64d(cfg.kdf.salt), iterations: cfg.kdf.iter }, base, 256));
+    const tb = te.encode('fotofix-tag'), mix = new Uint8Array(kb.length + tb.length); mix.set(kb); mix.set(tb, kb.length);
+    const tag = hex(new Uint8Array(await crypto.subtle.digest('SHA-256', mix)).slice(0, 8));
+    const e = (cfg.contractors || []).find(x => x.tag === tag); if (!e) return null;
+    const key = await crypto.subtle.importKey('raw', kb, 'AES-GCM', false, ['decrypt']);
+    const v = JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(e.iv) }, key, b64d(e.ct))));
+    return v && !v.role ? v : null;   // коды заказчика (версия 2.2) больше не действуют
+  } catch (e) { return null; }
+}
+async function initAuth() {
+  await loadConfig();
+  if (!S.code) { auth.name = null; return; }
+  if (!auth.cfg || (auth.hash === S.cfgHash && S.contractor)) { auth.name = S.contractor; return; }
+  const e = await unlock(S.code);
+  if (e) { auth.name = S.contractor = e.name; S.cfgHash = auth.hash; }
+  else { auth.name = null; S.code = S.contractor = S.cfgHash = null; toast('Ваш код больше не действует. Обратитесь к заказчику.', 8000); }
+  saveS();
+}
+
+/* ===================== время: сверка с сервером ===================== */
+const clock = { offset: null, phone: 0, mono: 0 };
+async function fetchTimeout(url, ms, opt = {}) {
+  const ctl = window.AbortController ? new AbortController() : null;
+  const tm = setTimeout(() => ctl && ctl.abort(), ms);
+  try { return await fetch(url, Object.assign({}, opt, ctl ? { signal: ctl.signal } : {})); } finally { clearTimeout(tm); }
+}
+async function syncClock() {
+  try {
+    const m0 = performance.now(), p0 = Date.now();
+    const r = await fetchTimeout('./?clock=' + p0, 4000, { method: 'HEAD', cache: 'no-store' });
+    const m1 = performance.now(), h = r.headers.get('Date');
+    if (!h || isNaN(Date.parse(h))) return false;
+    clock.offset = Date.parse(h) + 500 - (p0 + (m1 - m0) / 2);   // Date — с точностью до секунды
+    clock.phone = Date.now(); clock.mono = performance.now();
+    return true;
+  } catch (e) { return false; }
+}
+// сверка ещё годится, если часы телефона не переводили после неё
+function clockValid() {
+  if (clock.offset == null) return false;
+  const dPhone = Date.now() - clock.phone, dMono = performance.now() - clock.mono;
+  return Math.abs(dPhone - dMono) < 5000 && dMono < 6 * 3600e3;
+}
+
+/* ===================== форматирование (фиксированный часовой пояс) ===================== */
+const p2 = n => String(n).padStart(2, '0');
+const tzName = () => (auth.cfg && auth.cfg.tz) || 'Europe/Moscow';
+const _fmt = {};
+function parts(t) {
+  const tz = tzName();
+  let f = _fmt[tz];
+  if (!f) {
+    const o = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' };
+    try { f = new Intl.DateTimeFormat('ru-RU', Object.assign({ timeZone: tz }, o)); } catch (e) { f = new Intl.DateTimeFormat('ru-RU', o); }
+    _fmt[tz] = f;
+  }
+  const o = {}; f.formatToParts(new Date(t)).forEach(p => { o[p.type] = p.value; });
+  if (o.hour === '24') o.hour = '00';
+  return o;
+}
+const fmtDate = t => { const p = parts(t); return `${p.day}.${p.month}.${p.year}`; };
+const fmtTime = t => { const p = parts(t); return `${p.hour}:${p.minute}:${p.second}`; };
+const isoDay = t => { const p = parts(t); return `${p.year}-${p.month}-${p.day}`; };
+function wallMs(t) { const p = parts(t); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second); }
+const tzOffsetMin = t => Math.round((wallMs(t) - Math.floor(t / 1000) * 1000) / 60000);
+function tzLabel(t) { if (tzName() === 'Europe/Moscow') return 'МСК'; const o = tzOffsetMin(t), a = Math.abs(o); return `UTC${o >= 0 ? '+' : '−'}${Math.floor(a / 60)}${a % 60 ? ':' + p2(a % 60) : ''}`; }
+const fmtCoord = v => v.toFixed(6);
+const fmtVol = v => String(v).replace('.', ',') + ' м³';
+function fmtSize(b) {
+  if (b < 1048576) return Math.max(1, Math.round(b / 1024)) + ' КБ';
+  const m = b / 1048576; if (m < 1024) return (m < 10 ? m.toFixed(1) : String(Math.round(m))).replace('.', ',') + ' МБ';
+  return (m / 1024).toFixed(1).replace('.', ',') + ' ГБ';
+}
+function fmtDur(ms) { const s = Math.round(ms / 1000); if (s < 90) return s + ' с'; const m = Math.round(s / 60); if (m < 90) return m + ' мин'; const h = Math.floor(m / 60); if (h < 48) return `${h} ч ${p2(m % 60)} мин`; return Math.round(h / 24) + ' сут'; }
+function plural(n, a, b, c) { const x = n % 10, y = n % 100; return x === 1 && y !== 11 ? a : x >= 2 && x <= 4 && (y < 10 || y >= 20) ? b : c; }
+const snimkov = n => `${n} ${plural(n, 'снимок', 'снимка', 'снимков')}`;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const mapUrl = (lat, lon) => `https://yandex.ru/maps/?pt=${lon.toFixed(6)},${lat.toFixed(6)}&z=18&l=map`;
+const fileBase = it => `${String(it.num).padStart(4, '0')}_${isoDay(it.t)}_${fmtTime(it.t).replace(/:/g, '-')}`;
+const fileBytes = it => it.bytes || it.size || 0;   // в версии 1.0 размер файла лежал в поле size
+
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+
+function readAB(b) {
+  if (b instanceof ArrayBuffer) return Promise.resolve(b);
+  if (b.arrayBuffer) return b.arrayBuffer();
+  return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(fr.error); fr.readAsArrayBuffer(b); });
+}
+const asBlob = (x, type = 'image/jpeg') => x instanceof Blob ? x : new Blob([x], { type });
+const canvasToBlob = (c, type, q) => new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('Не удалось сжать фото (мало памяти?)')), type, q));
+function loadImage(blob) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(blob), img = new Image();
+    img.onload = () => res({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Не удалось открыть фото')); };
+    img.src = url;
+  });
+}
+function fitSize(w, h, maxSide) {
+  const k = Math.min(1, maxSide / Math.max(w, h), Math.sqrt(16.7e6 / (w * h)));
+  return [Math.max(1, Math.round(w * k)), Math.max(1, Math.round(h * k))];
+}
+function distM(lat1, lon1, lat2, lon2) {
+  const toR = Math.PI / 180, x = (lon2 - lon1) * toR * Math.cos((lat1 + lat2) / 2 * toR), y = (lat2 - lat1) * toR;
+  return Math.sqrt(x * x + y * y) * 6371000;
+}
+
+/* ===================== адрес по координатам (OpenStreetMap) ===================== */
+const addrMem = { lat: 0, lon: 0, at: 0, text: null };
+let lastGeoReq = 0;
+async function nominatim(lat, lon, houseLayer) {
+  const wait = 1100 - (Date.now() - lastGeoReq); if (wait > 0) await sleep(wait);   // правило сервиса: не чаще 1 запроса в секунду
+  lastGeoReq = Date.now();
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat.toFixed(6)}&lon=${lon.toFixed(6)}&zoom=18&addressdetails=1&accept-language=ru${houseLayer ? '&layer=address' : ''}`;
+  const r = await fetchTimeout(url, 7000);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+function fmtAddr(j) {
+  const a = (j && j.address) || {};
+  const city = a.city || a.town || a.village || a.hamlet || a.municipality || a.city_district || a.county || a.state || '';
+  const street = a.road || a.pedestrian || a.square || a.footway || a.path || a.neighbourhood || a.quarter || a.suburb || '';
+  return { text: [city, street, a.house_number].filter(Boolean).join(', '), street: !!street, house: !!a.house_number };
+}
+async function geocode(lat, lon) {
+  if (addrMem.text && Date.now() - addrMem.at < 15 * 60000 && distM(lat, lon, addrMem.lat, addrMem.lon) < 25) return addrMem.text;
+  let best = null;
+  try { best = fmtAddr(await nominatim(lat, lon, true)); } catch (e) { if (!navigator.onLine) return null; }
+  if (!best || !best.house) {
+    try { const b = fmtAddr(await nominatim(lat, lon, false)); if (!best || (b.street && !best.street) || (b.house && !best.house)) best = b; } catch (e) {}
+  }
+  if (!best || !best.text) return null;
+  Object.assign(addrMem, { lat, lon, at: Date.now(), text: best.text });
+  return best.text;
+}
+
+/* ===================== геолокация ===================== */
+const geo = { last: null, watch: null, state: 'search' };
+const fixListeners = new Set();
+function geoStart() {
+  if (!('geolocation' in navigator)) { geo.state = 'none'; return renderGps(); }
+  if (!window.isSecureContext) { geo.state = 'insecure'; return renderGps(); }
+  if (geo.watch != null) return;
+  if (geo.state !== 'ok') geo.state = 'search';
+  try { geo.watch = navigator.geolocation.watchPosition(onFix, onFixErr, { enableHighAccuracy: true, maximumAge: 0, timeout: 45000 }); }
+  catch (e) { geo.state = 'error'; }
+  renderGps();
+}
+function geoStop() { if (geo.watch != null) { navigator.geolocation.clearWatch(geo.watch); geo.watch = null; } }
+function onFix(p) {
+  const c = p.coords;
+  geo.last = { lat: c.latitude, lon: c.longitude, acc: c.accuracy, alt: (c.altitude == null || isNaN(c.altitude)) ? null : c.altitude, rx: Date.now() };
+  geo.state = 'ok';
+  renderGps();
+  fixListeners.forEach(f => { try { f(geo.last); } catch (e) {} });
+}
+function onFixErr(e) {
+  if (e.code === 1) { geo.state = 'denied'; geoStop(); }
+  else {
+    if (!geo.last) geo.state = 'search';
+    geoStop(); setTimeout(() => { if (document.visibilityState === 'visible' && geo.state !== 'denied') geoStart(); }, 3000);
+  }
+  renderGps();
+}
+function gpsLevel() {
+  if (geo.state === 'denied' || geo.state === 'insecure' || geo.state === 'none' || geo.state === 'error') return 'bad';
+  if (!geo.last) return 'search';
+  if (Date.now() - geo.last.rx > 120000) return 'stale';
+  return geo.last.acc <= 20 ? 'good' : geo.last.acc <= 60 ? 'mid' : 'poor';
+}
+const LV = ['lv-good', 'lv-mid', 'lv-poor', 'lv-search', 'lv-stale', 'lv-bad', 'lv-wait'];
+function setLv(el, lv) { el.classList.remove(...LV); el.classList.add('lv-' + lv); }
+function denyHelp() {
+  if (geo.state === 'insecure') return 'Страница открыта как файл или по http — браузер не даёт GPS. Откройте приложение по https-ссылке.';
+  if (geo.state === 'none') return 'Этот браузер не поддерживает геолокацию.';
+  if (isIOS) return 'Нет доступа к геопозиции. Настройки → Конфиденциальность и безопасность → Службы геолокации (включить) → Сайты Safari → «При использовании». Затем перезапустите приложение.';
+  return 'Нет доступа к геопозиции. Значок слева от адреса или ⋮ → «Настройки сайта» → «Местоположение» → Разрешить (у установленного приложения: долгое нажатие на иконку → О приложении → Разрешения). Включите «Местоположение» в шторке телефона.';
+}
+function renderGps() {
+  const L = geo.last, lv = gpsLevel();
+  setLv($('#gpsChip'), lv);
+  $('#chipText').textContent = (lv === 'good' || lv === 'mid' || lv === 'poor') ? `±${Math.round(L.acc)} м`
+    : lv === 'stale' ? 'GPS устарел' : lv === 'search' ? 'GPS: поиск…' : geo.state === 'denied' ? 'GPS: нет доступа' : 'GPS недоступен';
+  const line = $('#gpsLine');
+  let txt = '';
+  if (auth.name) {
+    if (lv === 'search') txt = 'Ищем спутники… Первый поиск может занять 1–2 минуты, на открытом месте быстрее.';
+    else if (lv === 'poor') txt = `Низкая точность GPS (±${Math.round(L.acc)} м) — выйдите на открытое место.`;
+    else if (lv === 'stale') txt = 'Нет свежих данных GPS.';
+    else if (lv === 'bad') txt = denyHelp();
+  }
+  line.hidden = !txt; line.textContent = txt; line.classList.toggle('bad', lv === 'bad');
+  if (R) renderReviewFacts();
+}
+
+/* ===================== хранилище (IndexedDB) ===================== */
+// Схему менять только добавлением: снимки должны переживать любые обновления приложения.
+let _db = null;
+function openDB() {
+  if (_db) return Promise.resolve(_db);
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('fotofix', 1);
+    r.onupgradeneeded = () => { const db = r.result; db.createObjectStore('meta', { keyPath: 'id', autoIncrement: true }); db.createObjectStore('img'); };
+    r.onsuccess = () => { _db = r.result; _db.onversionchange = () => { _db.close(); _db = null; }; res(_db); };
+    r.onerror = () => rej(r.error);
+    r.onblocked = () => rej(new Error('Хранилище занято другой вкладкой'));
+  });
+}
+function txWait(tx) { return new Promise((res, rej) => { tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error || new Error('Операция прервана')); }); }
+async function dbPut(meta, img) {
+  const db = await openDB(), tx = db.transaction(['meta', 'img'], 'readwrite'), done = txWait(tx);
+  let id;
+  try {
+    const r = tx.objectStore('meta').add(meta);
+    r.onsuccess = () => { id = r.result; try { tx.objectStore('img').put(img, id); } catch (e) { tx.abort(); } };
+  } catch (e) { try { tx.abort(); } catch (_) {} throw e; }
+  await done; return id;
+}
+async function dbAdd(meta, img) {
+  try { return await dbPut(meta, img); }
+  catch (e) {
+    if (e && /quota/i.test(e.name + e.message)) throw new Error('На телефоне не хватает места');
+    const m = Object.assign({}, meta, { thumb: await readAB(meta.thumb) });   // старые Safari не хранят Blob
+    return await dbPut(m, await readAB(img));
+  }
+}
+async function dbPutMetas(metas) { const db = await openDB(), tx = db.transaction('meta', 'readwrite'), done = txWait(tx); metas.forEach(m => tx.objectStore('meta').put(m)); await done; }
+async function dbAll() {
+  const db = await openDB(), st = db.transaction('meta').objectStore('meta');
+  return new Promise((res, rej) => { const r = st.getAll(); r.onsuccess = () => res(r.result || []); r.onerror = () => rej(r.error); });
+}
+async function dbGetImg(id) {
+  const db = await openDB(), tx = db.transaction('img');
+  const v = await new Promise((res, rej) => { const r = tx.objectStore('img').get(id); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  if (!v) throw new Error('Файл снимка не найден');
+  return asBlob(v);
+}
+async function dbDel(ids) {
+  const db = await openDB(), tx = db.transaction(['meta', 'img'], 'readwrite'), done = txWait(tx);
+  ids.forEach(id => { tx.objectStore('meta').delete(id); tx.objectStore('img').delete(id); });
+  await done;
+}
+
+/* ===================== отметки контроля ===================== */
+function computeFlags(m) {
+  const f = [];
+  if (m.timeSrc !== 'server') f.push('время не сверено с сервером (нет сети)');
+  else if (Math.abs(m.offset) > CLOCK_WARN_MS) f.push('часы телефона сбиты на ' + fmtDur(Math.abs(m.offset)));
+  if (m.acc != null && m.acc > 50) f.push(`низкая точность GPS ±${Math.round(m.acc)} м`);
+  if (!m.address) f.push('адрес не определён');
+  return f;
+}
+
+/* ===================== надпись на фото ===================== */
+function wrapText(ctx, text, maxW) {
+  const words = String(text).split(/\s+/).filter(Boolean), out = [];
+  let cur = '';
+  for (let w of words) {
+    while (ctx.measureText(w).width > maxW && w.length > 1) {
+      let i = w.length - 1;
+      while (i > 1 && ctx.measureText(w.slice(0, i)).width > maxW) i--;
+      if (cur) { out.push(cur); cur = ''; }
+      out.push(w.slice(0, i)); w = w.slice(i);
+    }
+    const t = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(t).width <= maxW) cur = t; else { if (cur) out.push(cur); cur = w; }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+function drawStamp(ctx, W, H, d) {
+  const fs = Math.max(11, Math.round(Math.min(W, H) * PHOTO.stampK));
+  const pad = Math.round(fs * 0.7), lh = Math.round(fs * 1.3), maxW = W - pad * 2;
+  const FF = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  const font = b => `${b ? 700 : 400} ${fs}px ${FF}`;
+  const lines = [], push = (t, b) => { ctx.font = font(b); wrapText(ctx, t, maxW).forEach(x => lines.push({ t: x, b })); };
+  const head = `${fmtDate(d.t)}  ${fmtTime(d.t)}  ${tzLabel(d.t)}`, numT = d.num ? `№ ${d.num}` : '';
+  ctx.font = font(true);
+  if (numT && ctx.measureText(head).width + ctx.measureText(numT).width + fs * 1.5 <= maxW) lines.push({ t: head, b: true, r: numT });
+  else { lines.push({ t: head, b: true }); if (numT) lines.push({ t: numT, b: true }); }
+  push(d.address || (d.address === undefined ? 'Адрес определяется…' : 'Адрес не определён (нет сети)'), true);
+  const p = d.pos;
+  push(p ? `${fmtCoord(p.lat)}, ${fmtCoord(p.lon)}  ±${Math.round(p.acc)} м` : 'Координаты: нет данных GPS', false);
+  push([d.vol ? 'Контейнер ' + fmtVol(d.vol) : '', d.contractor || ''].filter(Boolean).join(' · '), false);
+  if (d.timeSrc === 'phone') push('⚠ Время по часам телефона: нет сети для сверки', false);
+  if (d.comment) d.comment.split(/\n+/).forEach(par => push(par, false));
+  const MAXL = 9;
+  if (lines.length > MAXL) {
+    lines.length = MAXL; ctx.font = font(false);
+    let last = lines[MAXL - 1].t;
+    while (last && ctx.measureText(last + '…').width > maxW) last = last.slice(0, -1);
+    lines[MAXL - 1].t = last + '…';
+  }
+  const bandH = pad * 2 + lh * lines.length, top = H - bandH;
+  ctx.fillStyle = 'rgba(11,31,53,0.72)'; ctx.fillRect(0, top, W, bandH);
+  ctx.fillStyle = '#ef3124'; ctx.fillRect(0, top, W, Math.max(3, Math.round(fs * 0.14)));
+  ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'middle';
+  lines.forEach((l, i) => {
+    const y = top + pad + lh * i + lh / 2;
+    ctx.font = font(l.b); ctx.textAlign = 'left'; ctx.fillText(l.t, pad, y);
+    if (l.r) { ctx.textAlign = 'right'; ctx.fillText(l.r, W - pad, y); ctx.textAlign = 'left'; }
+  });
+}
+function renderPhoto(canvas, img, maxSide, d) {
+  const [W, H] = fitSize(img.naturalWidth, img.naturalHeight, maxSide);
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, 0, 0, W, H);
+  drawStamp(ctx, W, H, d);
+}
+
+/* ===================== EXIF (дата, GPS, адрес, подрядчик, комментарий) ===================== */
+function dms(v) {
+  let d = Math.floor(v), mf = (v - d) * 60, m = Math.floor(mf), s = Math.round((mf - m) * 60 * 10000);
+  if (s >= 600000) { s -= 600000; m++; } if (m >= 60) { m -= 60; d++; }
+  return [[d, 1], [m, 1], [s, 10000]];
+}
+function buildExif(d, W, H) {
+  const te = new TextEncoder();
+  const asc = s => { const b = te.encode(s), r = new Uint8Array(b.length + 1); r.set(b); return r; };
+  const ucs = s => { const r = new Uint8Array(s.length * 2 + 2); for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); r[i * 2] = c & 255; r[i * 2 + 1] = c >> 8; } return r; };
+  const sh = (...v) => { const r = new Uint8Array(v.length * 2); v.forEach((x, i) => { r[i * 2] = x & 255; r[i * 2 + 1] = (x >> 8) & 255; }); return r; };
+  const lg = (...v) => { const r = new Uint8Array(v.length * 4), dv = new DataView(r.buffer); v.forEach((x, i) => dv.setUint32(i * 4, x >>> 0, true)); return r; };
+  const ra = (...v) => { const r = new Uint8Array(v.length * 8), dv = new DataView(r.buffer); v.forEach(([n, m], i) => { dv.setUint32(i * 8, n >>> 0, true); dv.setUint32(i * 8 + 4, m >>> 0, true); }); return r; };
+  const SZ = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1 };
+  const E = (tag, type, bytes) => ({ tag, type, bytes, count: bytes.length / SZ[type] });
+
+  const p = parts(d.t), exDT = `${p.year}:${p.month}:${p.day} ${p.hour}:${p.minute}:${p.second}`;
+  const off = tzOffsetMin(d.t), offS = (off >= 0 ? '+' : '-') + p2(Math.floor(Math.abs(off) / 60)) + ':' + p2(Math.abs(off) % 60);
+  const comment = (d.comment || '').slice(0, 1000), who = (d.contractor || '').slice(0, 200), addr = (d.address || '').slice(0, 300);
+  const vol = d.vol ? 'Контейнер ' + fmtVol(d.vol) : '';
+  const desc = [who && 'Подрядчик: ' + who, addr && 'Адрес: ' + addr, vol, comment].filter(Boolean).join('. ');
+  const title = [vol, addr].filter(Boolean).join(' — ');
+
+  const ifd0 = [];
+  if (desc) ifd0.push(E(0x010E, 2, asc(desc)));                // ImageDescription (UTF-8)
+  ifd0.push(E(0x0112, 3, sh(1)));                               // Orientation: пиксели уже повёрнуты
+  ifd0.push(E(0x0131, 2, asc('Fotofiksaciya ' + VERSION)));    // Software
+  ifd0.push(E(0x0132, 2, asc(exDT)));                           // DateTime
+  if (who) ifd0.push(E(0x013B, 2, asc(who)));                   // Artist
+  const pExif = E(0x8769, 4, lg(0)); ifd0.push(pExif);
+  const pGps = d.pos ? E(0x8825, 4, lg(0)) : null; if (pGps) ifd0.push(pGps);
+  if (title) ifd0.push(E(0x9C9B, 1, ucs(title)));               // XPTitle (Windows)
+  if (comment) ifd0.push(E(0x9C9C, 1, ucs(comment)));           // XPComment
+  if (who) ifd0.push(E(0x9C9D, 1, ucs(who)));                   // XPAuthor
+  if (addr) ifd0.push(E(0x9C9F, 1, ucs(addr)));                 // XPSubject
+
+  const ex = [
+    E(0x9000, 7, te.encode('0232')),
+    E(0x9003, 2, asc(exDT)), E(0x9004, 2, asc(exDT)),
+    E(0x9010, 2, asc(offS)), E(0x9011, 2, asc(offS)), E(0x9012, 2, asc(offS)),
+  ];
+  if (comment) { const u = ucs(comment).subarray(0, comment.length * 2), r = new Uint8Array(8 + u.length); r.set(te.encode('UNICODE\0')); r.set(u, 8); ex.push(E(0x9286, 7, r)); }
+  ex.push(E(0xA002, 4, lg(W)), E(0xA003, 4, lg(H)));
+
+  const gps = [];
+  if (d.pos) {
+    const { lat, lon, acc, alt } = d.pos, g = new Date(d.t);
+    gps.push(E(0x0000, 1, new Uint8Array([2, 3, 0, 0])),
+      E(0x0001, 2, asc(lat >= 0 ? 'N' : 'S')), E(0x0002, 5, ra(...dms(Math.abs(lat)))),
+      E(0x0003, 2, asc(lon >= 0 ? 'E' : 'W')), E(0x0004, 5, ra(...dms(Math.abs(lon)))));
+    if (alt != null) gps.push(E(0x0005, 1, new Uint8Array([alt < 0 ? 1 : 0])), E(0x0006, 5, ra([Math.round(Math.abs(alt) * 100), 100])));
+    gps.push(E(0x0007, 5, ra([g.getUTCHours(), 1], [g.getUTCMinutes(), 1], [g.getUTCSeconds(), 1])),
+      E(0x0012, 2, asc('WGS-84')),
+      E(0x001D, 2, asc(`${g.getUTCFullYear()}:${p2(g.getUTCMonth() + 1)}:${p2(g.getUTCDate())}`)));
+    if (acc != null) gps.push(E(0x001F, 5, ra([Math.round(acc * 100), 100])));
+  }
+
+  const size = es => 2 + es.length * 12 + 4 + es.reduce((s, e) => s + (e.bytes.length > 4 ? e.bytes.length + (e.bytes.length & 1) : 0), 0);
+  const o0 = 8, oEx = o0 + size(ifd0), oGps = oEx + size(ex), total = oGps + (gps.length ? size(gps) : 0);
+  pExif.bytes = lg(oEx); if (pGps) pGps.bytes = lg(oGps);
+  const tiff = new Uint8Array(total), dv = new DataView(tiff.buffer);
+  tiff.set([0x49, 0x49, 0x2A, 0x00, 0x08, 0, 0, 0]);
+  const write = (es, off) => {
+    dv.setUint16(off, es.length, true);
+    let data = off + 2 + es.length * 12 + 4;
+    es.forEach((e, i) => {
+      const q = off + 2 + i * 12;
+      dv.setUint16(q, e.tag, true); dv.setUint16(q + 2, e.type, true); dv.setUint32(q + 4, e.count, true);
+      if (e.bytes.length <= 4) tiff.set(e.bytes, q + 8);
+      else { dv.setUint32(q + 8, data, true); tiff.set(e.bytes, data); data += e.bytes.length + (e.bytes.length & 1); }
+    });
+    dv.setUint32(off + 2 + es.length * 12, 0, true);
+  };
+  write(ifd0, o0); write(ex, oEx); if (gps.length) write(gps, oGps);
+  const len = 2 + 6 + tiff.length;
+  if (len > 65535) throw new Error('EXIF слишком большой');
+  const app1 = new Uint8Array(2 + len);
+  app1.set([0xFF, 0xE1, len >> 8, len & 255, 0x45, 0x78, 0x69, 0x66, 0, 0]);
+  app1.set(tiff, 10);
+  return app1;
+}
+function insertExif(jpeg, app1) {
+  if (jpeg[0] !== 0xFF || jpeg[1] !== 0xD8) return jpeg;
+  let i = 2;
+  while (i + 4 <= jpeg.length && jpeg[i] === 0xFF && (jpeg[i + 1] === 0xE0 || jpeg[i + 1] === 0xE1)) i += 2 + ((jpeg[i + 2] << 8) | jpeg[i + 3]);
+  const out = new Uint8Array(2 + app1.length + jpeg.length - i);
+  out.set([0xFF, 0xD8]); out.set(app1, 2); out.set(jpeg.subarray(i), 2 + app1.length);
+  return out;
+}
+
+/* ===================== ZIP, таблица Excel, фотоотчёт ===================== */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function dosDT(t) { const d = new Date(wallMs(t)); return { time: (d.getUTCHours() << 11) | (d.getUTCMinutes() << 5) | (d.getUTCSeconds() >> 1), date: ((Math.max(1980, d.getUTCFullYear()) - 1980) << 9) | ((d.getUTCMonth() + 1) << 5) | d.getUTCDate() }; }
+async function buildZip(entries, type = 'application/zip') {
+  const te = new TextEncoder(), out = [], cd = [];
+  let off = 0;
+  for (const e of entries) {
+    const name = te.encode(e.name);
+    let size, crc = e.crc;
+    if (e.data instanceof Uint8Array) { size = e.data.length; if (crc == null) crc = crc32(e.data); }
+    else { size = e.data.size; if (crc == null) crc = crc32(new Uint8Array(await readAB(e.data))); }
+    const { time, date } = dosDT(e.t || Date.now());
+    const h = new Uint8Array(30 + name.length), v = new DataView(h.buffer);
+    v.setUint32(0, 0x04034b50, true); v.setUint16(4, 20, true); v.setUint16(6, 0x0800, true); v.setUint16(8, 0, true);
+    v.setUint16(10, time, true); v.setUint16(12, date, true); v.setUint32(14, crc, true); v.setUint32(18, size, true); v.setUint32(22, size, true);
+    v.setUint16(26, name.length, true); v.setUint16(28, 0, true); h.set(name, 30);
+    out.push(h, e.data);
+    const c = new Uint8Array(46 + name.length), w = new DataView(c.buffer);
+    w.setUint32(0, 0x02014b50, true); w.setUint16(4, 20, true); w.setUint16(6, 20, true); w.setUint16(8, 0x0800, true); w.setUint16(10, 0, true);
+    w.setUint16(12, time, true); w.setUint16(14, date, true); w.setUint32(16, crc, true); w.setUint32(20, size, true); w.setUint32(24, size, true);
+    w.setUint16(28, name.length, true); w.setUint32(42, off, true); c.set(name, 46);
+    cd.push(c);
+    off += h.length + size;
+  }
+  const cdSize = cd.reduce((s, c) => s + c.length, 0), end = new Uint8Array(22), ev = new DataView(end.buffer);
+  ev.setUint32(0, 0x06054b50, true); ev.setUint16(8, entries.length, true); ev.setUint16(10, entries.length, true);
+  ev.setUint32(12, cdSize, true); ev.setUint32(16, off, true);
+  return new Blob([...out, ...cd, end], { type });
+}
+const xmlEsc = s => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// Столбцы: сначала согласованные с заказчиком, затем служебные. [заголовок, ширина, ячейка(строка)]
+// ячейка: ['n', число, стиль] | ['s', текст, стиль] | ['l', текст, адрес ссылки]
+const serialOf = it => wallMs(it.t) / 864e5 + 25569;
+const COLS = [
+  ['№ п/п', 7, it => ['n', it.num, 6]],
+  ['Дата', 11, it => ['n', Math.floor(serialOf(it)), 3]],
+  ['Время', 9, it => { const s = serialOf(it); return ['n', (s - Math.floor(s)).toFixed(10), 4]; }],
+  ['Адрес', 42, it => ['s', it.address || '', 2]],
+  ['Размер контейнера, м³', 12, it => ['n', it.vol != null ? it.vol : null, 8]],
+  ['Подрядчик', 26, it => ['s', it.contractor || '', 2]],
+  ['Комментарий', 40, it => ['s', it.comment || '', 2]],
+  // ссылка как её пишет сам Excel: путь к фото относительно таблицы, через «\»
+  ['Фото', 30, it => ['l', it.file.split('/').pop(), it.file.replace(/\//g, '\\')]],
+  ['Широта', 11, it => ['n', it.lat != null ? it.lat.toFixed(7) : null, 5]],
+  ['Долгота', 11, it => ['n', it.lon != null ? it.lon.toFixed(7) : null, 5]],
+  ['Точность GPS, м', 10, it => ['n', it.acc != null ? Math.round(it.acc) : null, 6]],
+  ['Карта', 9, it => it.lat != null ? ['l', 'карта', mapUrl(it.lat, it.lon)] : ['s', '', 2]],
+  ['Отметки контроля', 40, it => ['s', (it.flags || []).join('; '), 2]],
+];
+const XLSX_STYLES = '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+  + '<numFmts count="3"><numFmt numFmtId="164" formatCode="dd\\.mm\\.yyyy"/><numFmt numFmtId="165" formatCode="hh:mm:ss"/><numFmt numFmtId="166" formatCode="0.000000"/></numFmts>'
+  + '<fonts count="3"><font><sz val="11"/><name val="Calibri"/><family val="2"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/><family val="2"/></font>'
+  + '<font><u/><sz val="11"/><color rgb="FF0563C1"/><name val="Calibri"/><family val="2"/></font></fonts>'
+  + '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+  + '<fill><patternFill patternType="solid"><fgColor rgb="FFEF3124"/><bgColor indexed="64"/></patternFill></fill></fills>'
+  + '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'
+  + '<border><left style="thin"><color rgb="FFBFBFBF"/></left><right style="thin"><color rgb="FFBFBFBF"/></right><top style="thin"><color rgb="FFBFBFBF"/></top><bottom style="thin"><color rgb="FFBFBFBF"/></bottom><diagonal/></border></borders>'
+  + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+  + '<cellXfs count="9">'
+  + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+  + '<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
+  + '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+  + '<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>'
+  + '<xf numFmtId="165" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>'
+  + '<xf numFmtId="166" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>'
+  + '<xf numFmtId="1" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>'
+  + '<xf numFmtId="0" fontId="2" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment vertical="top"/></xf>'
+  + '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="top"/></xf>'
+  + '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+// Лист и книга защищены паролем заказчика: в приложении лежит только его хеш (config.json → xlsx).
+// Менять ячейки, строки, листы нельзя; фильтр и ширина столбцов работают.
+async function buildXlsx(rows) {
+  const te = new TextEncoder();
+  const col = i => (i >= 26 ? String.fromCharCode(64 + Math.floor(i / 26)) : '') + String.fromCharCode(65 + i % 26);
+  const L = col(COLS.length - 1), last = rows.length + 1;
+  const NS = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const H = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const prot = auth.cfg && auth.cfg.xlsx;
+  const cs = (ref, s, v) => `<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+  const cn = (ref, s, v) => v == null || v === '' ? `<c r="${ref}" s="${s}"/>` : `<c r="${ref}" s="${s}"><v>${v}</v></c>`;
+  const links = [];
+  let x = `<row r="1" ht="32" customHeight="1">${COLS.map((c, i) => cs(col(i) + 1, 1, c[0])).join('')}</row>`;
+  rows.forEach((it, k) => {
+    const r = k + 2;
+    x += `<row r="${r}">` + COLS.map((c, i) => {
+      const ref = col(i) + r, [type, a, b] = c[2](it);
+      if (type === 'l') { links.push({ ref, id: 'rId' + (links.length + 1), target: b }); return cs(ref, 7, a); }
+      return type === 'n' ? cn(ref, b, a) : cs(ref, b, a);
+    }).join('') + '</row>';
+  });
+  const files = {
+    '[Content_Types].xml': H + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      + '<Default Extension="xml" ContentType="application/xml"/>'
+      + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+      + '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+      + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+      + '</Types>',
+    '_rels/.rels': H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + `<Relationship Id="rId1" Type="${REL}/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
+    'xl/workbook.xml': H + `<workbook ${NS}>`
+      + (prot ? `<workbookProtection workbookAlgorithmName="SHA-512" workbookHashValue="${prot.hash}" workbookSaltValue="${prot.salt}" workbookSpinCount="${prot.spin}" lockStructure="1"/>` : '')
+      + '<sheets><sheet name="Журнал" sheetId="1" r:id="rId1"/></sheets>'
+      + `<definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'Журнал'!$A$1:$${L}$${last}</definedName></definedNames>`
+      + '<calcPr calcId="191029"/></workbook>',
+    'xl/_rels/workbook.xml.rels': H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + `<Relationship Id="rId1" Type="${REL}/worksheet" Target="worksheets/sheet1.xml"/>`
+      + `<Relationship Id="rId2" Type="${REL}/styles" Target="styles.xml"/></Relationships>`,
+    'xl/styles.xml': H + XLSX_STYLES,
+    'xl/worksheets/sheet1.xml': H + `<worksheet ${NS}><dimension ref="A1:${L}${last}"/>`
+      + '<sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>'
+      + '<sheetFormatPr defaultRowHeight="15"/>'
+      + `<cols>${COLS.map((c, i) => `<col min="${i + 1}" max="${i + 1}" width="${c[1]}" customWidth="1"/>`).join('')}</cols>`
+      + `<sheetData>${x}</sheetData>`
+      + (prot ? `<sheetProtection algorithmName="SHA-512" hashValue="${prot.hash}" saltValue="${prot.salt}" spinCount="${prot.spin}" sheet="1" objects="1" scenarios="1" formatColumns="0" formatRows="0" autoFilter="0"/>` : '')
+      + `<autoFilter ref="A1:${L}${last}"/>`
+      + (links.length ? `<hyperlinks>${links.map(l => `<hyperlink ref="${l.ref}" r:id="${l.id}"/>`).join('')}</hyperlinks>` : '')
+      + '<pageMargins left="0.4" right="0.4" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape"/>'
+      + '</worksheet>',
+    'xl/worksheets/_rels/sheet1.xml.rels': H + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + links.map(l => `<Relationship Id="${l.id}" Type="${REL}/hyperlink" Target="${xmlEsc(l.target)}" TargetMode="External"/>`).join('')
+      + '</Relationships>',
+  };
+  const blob = await buildZip(Object.entries(files).map(([name, s]) => ({ name, data: te.encode(s) })),
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  return new Uint8Array(await readAB(blob));
+}
+function buildReport(rows) {
+  const who = [...new Set(rows.map(r => r.contractor).filter(Boolean))];
+  const d1 = fmtDate(rows[0].t), d2 = fmtDate(rows[rows.length - 1].t);
+  const items = rows.map(it => `<div class="it"><img src="${esc(it.file)}" alt=""><div class="m"><b>№ ${it.num}</b> · ${fmtDate(it.t)} ${fmtTime(it.t)} ${tzLabel(it.t)}`
+    + (it.vol ? ` · контейнер ${fmtVol(it.vol)}` : '')
+    + `<br>${it.address ? esc(it.address) : 'адрес не определён'}`
+    + (it.lat != null ? ` · <a href="${esc(mapUrl(it.lat, it.lon))}">${fmtCoord(it.lat)}, ${fmtCoord(it.lon)}</a> ±${Math.round(it.acc)} м` : '')
+    + (it.comment ? `<div class="c">${esc(it.comment)}</div>` : '')
+    + ((it.flags || []).length ? `<div class="f">⚠ ${esc(it.flags.join('; '))}</div>` : '') + '</div></div>').join('\n');
+  return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Фотоотчёт ${esc(d1)}</title><style>
+body{font:14px/1.45 Arial,Helvetica,sans-serif;color:#0b1f35;margin:24px auto;max-width:900px;padding:0 16px}
+h1{font-size:24px;margin:0 0 4px;border-left:6px solid #ef3124;padding-left:10px}.sub{color:#5e6a78;margin:0 0 20px}
+.it{break-inside:avoid;page-break-inside:avoid;border-top:1px solid #dbdee1;padding:14px 0 18px}
+.it img{display:block;max-width:100%;max-height:125mm;margin:0 0 8px;border-radius:6px}.c{white-space:pre-wrap;margin-top:4px}.f{color:#b45f00;margin-top:4px}
+a{color:#0b57d0}@media print{body{margin:0;max-width:none}a{color:inherit;text-decoration:none}}
+</style></head><body><h1>Фотоотчёт: заполненные контейнеры</h1>
+<p class="sub">${who.length ? 'Подрядчик: ' + esc(who.join('; ')) + '<br>' : ''}Период: ${d1}${d1 !== d2 ? ' — ' + d2 : ''} · ${snimkov(rows.length)}</p>
+${items}
+</body></html>`;
+}
+async function buildExport(items, onProg) {
+  const list = items.slice().sort((a, b) => a.t - b.t || a.num - b.num), names = new Set(), entries = [], rows = [];
+  for (let k = 0; k < list.length; k++) {
+    const it = list[k];
+    onProg(k + 1, list.length);
+    const blob = await dbGetImg(it.id);
+    let name = `photo/${fileBase(it)}.jpg`;
+    if (names.has(name)) name = `photo/${fileBase(it)}_${it.id}.jpg`;
+    names.add(name);
+    entries.push({ name, data: blob, crc: blob.size === fileBytes(it) ? it.crc : null, t: it.t });
+    rows.push(Object.assign({}, it, { file: name }));
+  }
+  entries.push({ name: 'journal.xlsx', data: await buildXlsx(rows) });
+  entries.push({ name: 'report.html', data: new TextEncoder().encode(buildReport(rows)) });
+  return buildZip(entries);
+}
+function exportName(items) {
+  const days = items.map(i => isoDay(i.t)).sort(), who = [...new Set(items.map(i => i.contractor).filter(Boolean))];
+  const w = who.length === 1 ? '_' + who[0].replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40) : '';
+  return `Фотофиксация${w}_${days[0]}${days[0] !== days[days.length - 1] ? '_' + days[days.length - 1] : ''}.zip`;
+}
+// «Поделиться» архивом — только на iPhone/iPad. Chrome на Android делится лишь фото, видео, PDF и текстом:
+// canShare для ZIP отвечает «можно», а share() падает с «Permission denied». Там архив сразу сохраняется в «Загрузки».
+function canShareFile(f) { if (!isIOS) return false; try { return !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] })); } catch (e) { return false; } }
+function downloadBlob(blob, name) {
+  const a = document.createElement('a'), url = URL.createObjectURL(blob);
+  a.href = url; a.download = name; a.rel = 'noopener'; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 60000);
+}
+
+/* ===================== интерфейс: общее ===================== */
+const st = { items: [], thumbs: new Map(), saving: Promise.resolve(), pending: 0, bip: null, exp: null, view: null, persistAsked: false, filling: false };
+const up = { busy: false, queued: false, done: 0, total: 0, err: null, retryAt: 0 };   // отправка в облако
+let toastTimer = 0;
+function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, ms); }
+
+// Каждое открытое окно — запись в истории, чтобы кнопка «Назад» на Android закрывала окно, а не приложение.
+// Окна могут лежать друг на друге (отчёт поверх настроек): закрытие кнопкой снимает свою запись истории,
+// и этот history.back() не должен закрыть окно под ним — для этого ignorePops.
+const sheetStack = [], backHandlers = new Map();
+let ignorePops = 0;
+function openSheet(el) {
+  el.hidden = false; sheetStack.push(el); document.body.classList.add('locked');
+  try { history.pushState({ ff: 1 }, ''); } catch (e) {}
+}
+function closeSheet(el, fromPop) {
+  if (el.hidden) return;
+  el.hidden = true;
+  const i = sheetStack.indexOf(el); if (i >= 0) sheetStack.splice(i, 1);
+  if (!sheetStack.length) document.body.classList.remove('locked');
+  if (!fromPop) { try { if (history.state && history.state.ff) { ignorePops++; history.back(); } } catch (e) {} }
+}
+window.addEventListener('popstate', () => {
+  if (ignorePops) { ignorePops--; return; }
+  const top = sheetStack[sheetStack.length - 1]; if (!top) return;
+  const h = backHandlers.get(top); h ? h() : closeSheet(top, true);
+});
+function thumbUrl(it) { if (!st.thumbs.has(it.id)) st.thumbs.set(it.id, URL.createObjectURL(asBlob(it.thumb))); return st.thumbs.get(it.id); }
+function dropItems(ids) {
+  const set = new Set(ids);
+  st.items = st.items.filter(i => !set.has(i.id));
+  ids.forEach(id => { const u = st.thumbs.get(id); if (u) { URL.revokeObjectURL(u); st.thumbs.delete(id); } });
+}
+// С облаком (config.json → cloud.url) снимки уходят заказчику сами; без него — архивом через «Отправить отчёт».
+// upErr — облако отказалось принять снимок насовсем (код отключён, снимок повреждён): автоматически не повторяем.
+const cloudUrl = () => (auth.cfg && auth.cfg.cloud && auth.cfg.cloud.url) || null;
+const isDone = it => cloudUrl() ? !!it.up : !!it.sent;
+const unsent = () => st.items.filter(i => !isDone(i) && !(cloudUrl() && i.upErr));
+function refresh() { renderMain(); if (!$('#settings').hidden) renderSettings(); }
+
+/* ===================== главный экран ===================== */
+function renderMain() {
+  $('#who').innerHTML = auth.name ? `Подрядчик: <b>${esc(auth.name)}</b>` : 'Подрядчик не выбран';
+  $('#shutter').classList.toggle('off', !auth.name);
+  $('#shutterHint').textContent = auth.name ? 'Сфотографируйте заполненный контейнер' : 'Нажмите, чтобы ввести код подрядчика';
+  const n = unsent().length, send = $('#sendBtn');
+  // с облаком кнопка нужна, только если снимки не ушли сами (нет сети, ошибка) — пока идёт отправка, её не показываем
+  send.hidden = !n || !!(cloudUrl() && (up.busy || up.queued || st.pending));
+  send.textContent = `Отправить отчёт · ${n} ${plural(n, 'новый снимок', 'новых снимка', 'новых снимков')}`;
+  renderPending();
+  renderShots();
+  renderBanner();
+  renderGps();
+}
+function renderShots() {
+  const box = $('#shots');
+  if (!st.items.length) { box.innerHTML = auth.name ? '<div class="empty">Снимков пока нет</div>' : ''; return; }
+  const groups = new Map();
+  st.items.forEach(it => { const k = isoDay(it.t); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(it); });
+  let html = '';
+  groups.forEach(arr => {
+    const sent = arr.filter(isDone).length;
+    html += `<div class="day"><b>${fmtDate(arr[0].t)}</b><span class="muted sm">${snimkov(arr.length)}${sent ? ` · отправлено ${sent}` : ''}</span></div><div class="grid">`;
+    arr.forEach(it => {
+      html += `<button class="shot" type="button" data-id="${it.id}" aria-label="Снимок № ${it.num}"><img loading="lazy" src="${thumbUrl(it)}" alt="">`
+        + `<span class="tm">${fmtTime(it.t).slice(0, 5)}</span>`
+        + (isDone(it) ? '<span class="st sent" title="Отправлен">✓</span>' : '')
+        + ((it.flags || []).length ? '<span class="st flag" title="Есть отметки">!</span>' : '')
+        + '</button>';
+    });
+    html += '</div>';
+  });
+  box.innerHTML = html;
+}
+function renderPending() {
+  const el = $('#pending'), fail = !st.pending && !up.busy && !!up.err && unsent().length > 0;
+  const txt = st.pending ? `Сохраняю… (${st.pending})`
+    : up.busy ? (up.total ? `Отправляю заказчику: ${Math.min(up.done + 1, up.total)} из ${up.total}…` : 'Отправляю заказчику…')
+    : fail ? `Не отправлено: ${up.err}. Отправлю сам, когда появится связь.` : '';
+  el.hidden = !txt; el.textContent = txt; el.classList.toggle('bad', fail);
+}
+function renderBanner() {
+  const b = $('#banner'), act = $('#bnAct');
+  b.classList.remove('bad'); act.hidden = true;
+  if (!window.isSecureContext) {
+    b.hidden = false; b.classList.add('bad'); $('#bnClose').hidden = true;
+    $('#bnTitle').textContent = 'Открыто как файл';
+    $('#bnText').textContent = 'В таком режиме браузер не даёт GPS и установку. Откройте приложение по https-ссылке.';
+    return;
+  }
+  $('#bnClose').hidden = false;
+  if (isStandalone() || S.hideBanner) { b.hidden = true; return; }
+  b.hidden = false;
+  $('#bnTitle').textContent = 'Установите на главный экран';
+  $('#bnText').textContent = isIOS
+    ? 'Safari → «Поделиться» → «На экран „Домой“». Так приложение работает без интернета, а снимки не теряются.'
+    : 'Так приложение работает без интернета и открывается с иконки, как обычное.';
+  if (!isIOS) { act.hidden = false; act.textContent = st.bip ? 'Установить' : 'Как установить'; }
+}
+
+/* ===================== вход по коду ===================== */
+function openOnboard() { $('#obCode').value = ''; $('#obErr').hidden = true; $('#obGo').disabled = false; $('#obGo').textContent = 'Войти'; openSheet($('#onboard')); setTimeout(() => $('#obCode').focus(), 50); }
+function obErr(msg) { const e = $('#obErr'); e.textContent = msg; e.hidden = false; $('#obGo').disabled = false; $('#obGo').textContent = 'Войти'; }
+async function tryCode() {
+  const raw = $('#obCode').value.replace(/\D/g, '');
+  if (raw.length !== 12) return obErr('Код состоит из 12 цифр.');
+  $('#obGo').disabled = true; $('#obGo').textContent = 'Проверяю…'; $('#obErr').hidden = true;
+  if (!auth.cfg) await loadConfig();
+  if (!auth.cfg) return obErr('Нет связи с сервером. Для первого входа нужен интернет.');
+  const e = await unlock(raw);
+  if (!e) return obErr('Код не подошёл. Проверьте цифры или уточните код у заказчика.');
+  S.code = raw; S.contractor = e.name; S.cfgHash = auth.hash; saveS();
+  auth.name = e.name;
+  closeSheet($('#onboard'));
+  geoStart(); renderMain(); renderSettings();
+  toast(`Вы вошли: ${e.name}`, 3500);
+  if (unsent().length) uploadAll();
+}
+
+/* ===================== новый снимок ===================== */
+let R = null, capturing = false, prevTimer = 0;
+function openReview(file, tPhone) {
+  if (R) discardReview();
+  const list = sizes(), other = S.vol != null && !list.includes(S.vol);
+  const r = R = { tPhone, t: tPhone, timeSrc: 'pending', offset: null, pos: null, img: null, url: null, closed: false, opened: Date.now(),
+    address: undefined, addrFor: null, addrP: null, vol: S.vol != null ? S.vol : list[0], other };
+  r.timeP = syncClock().then(ok => {
+    if (ok || clockValid()) { r.offset = clock.offset; r.t = r.tPhone + clock.offset; r.timeSrc = 'server'; }
+    else { r.timeSrc = 'phone'; r.t = r.tPhone; }
+    if (R === r) schedulePreview(0);
+  });
+  const L = geo.last;
+  if (L && Date.now() - L.rx <= 120000) setPos(r, L);
+  r.onFix = f => {
+    if (r.closed) return;
+    if (!r.pos || (Date.now() - r.opened < 30000 && f.acc < r.pos.acc)) { setPos(r, f); schedulePreview(0); }
+  };
+  fixListeners.add(r.onFix);
+  $('#rvComment').value = '';
+  $('#rvVolOther').value = other ? String(S.vol).replace('.', ',') : '';
+  $('#rvNum').textContent = '№ ' + (S.lastNum + 1);
+  renderSizes(); renderReviewFacts();
+  const cv = $('#rvCanvas'); cv.width = cv.height = 0; cv.style.width = cv.style.height = '0';
+  $('#rvSpin').hidden = false;
+  openSheet($('#review'));
+  loadImage(file).then(({ img, url }) => {
+    if (r.closed) { URL.revokeObjectURL(url); return; }
+    r.img = img; r.url = url; drawPreview();
+  }).catch(e => { if (!r.closed) { toast(e.message, 4000); discardReview(); } })
+    .finally(() => { $('#rvSpin').hidden = true; });
+}
+function setPos(r, f) {
+  r.pos = Object.assign({}, f);
+  if (!r.addrFor || distM(r.addrFor.lat, r.addrFor.lon, f.lat, f.lon) > 30) startAddr(r);
+  if (R === r) renderReviewFacts();
+}
+function startAddr(r) {
+  const p = r.pos; r.addrFor = p; r.address = undefined;
+  r.addrP = geocode(p.lat, p.lon).catch(() => null).then(a => { if (r.addrFor !== p) return; r.address = a; if (R === r) schedulePreview(0); });
+}
+const stampData = (r, num) => ({ t: r.t, timeSrc: r.timeSrc, pos: r.pos, address: r.address, num, vol: r.vol, contractor: auth.name, comment: ($('#rvComment').value || '').trim() });
+function drawPreview() {
+  const r = R; if (!r) return;
+  renderReviewFacts();
+  if (!r.img) return;
+  const cv = $('#rvCanvas'), box = $('#review .preview');
+  const ar = r.img.naturalWidth / r.img.naturalHeight, cw = box.clientWidth || (window.innerWidth - 32), maxH = window.innerHeight * 0.48;
+  let w = cw, h = w / ar; if (h > maxH) { h = maxH; w = h * ar; }
+  cv.style.width = Math.round(w) + 'px'; cv.style.height = Math.round(h) + 'px';
+  renderPhoto(cv, r.img, Math.round(Math.max(w, h) * Math.min(window.devicePixelRatio || 1, 2.5)), stampData(r, S.lastNum + 1));
+}
+function schedulePreview(ms = 250) { clearTimeout(prevTimer); prevTimer = setTimeout(drawPreview, ms); }
+function factHtml(lv, html) { return `<span class="lv-${lv}"><span class="dot"></span></span>${html}`; }
+function renderReviewFacts() {
+  const r = R; if (!r) return;
+  let t;
+  if (r.timeSrc === 'pending') t = factHtml('wait', 'сверяю время с сервером…');
+  else if (r.timeSrc === 'server') t = factHtml(Math.abs(r.offset) > CLOCK_WARN_MS ? 'mid' : 'good', `${fmtDate(r.t)} ${fmtTime(r.t)} ${tzLabel(r.t)}`)
+    + (Math.abs(r.offset) > CLOCK_WARN_MS ? `<div class="sm warn">часы телефона сбиты на ${fmtDur(Math.abs(r.offset))}</div>` : '');
+  else t = factHtml('mid', `${fmtDate(r.t)} ${fmtTime(r.t)} ${tzLabel(r.t)}`) + '<div class="sm warn">по часам телефона — нет сети для сверки</div>';
+  $('#fTime').innerHTML = t;
+  let a;
+  if (!r.pos) a = factHtml('wait', 'определится после GPS');
+  else if (r.address === undefined) a = factHtml('wait', 'определяю адрес…');
+  else if (!r.address) a = factHtml('mid', '<span class="warn">не определён (нет сети)</span>');
+  else a = factHtml('good', esc(r.address));
+  $('#fAddr').innerHTML = a;
+  let g;
+  if (r.pos) {
+    const lv = r.pos.acc <= 20 ? 'good' : r.pos.acc <= 60 ? 'mid' : 'poor';
+    g = factHtml(lv, `<span class="mono">${fmtCoord(r.pos.lat)}, ${fmtCoord(r.pos.lon)}</span> · ±${Math.round(r.pos.acc)} м`) + (lv === 'poor' ? '<div class="sm warn">низкая точность</div>' : '');
+  } else if (gpsLevel() === 'bad') g = factHtml('bad', '<span class="bad">нет доступа к геопозиции</span>') + `<div class="sm muted">${esc(denyHelp())}</div>`;
+  else g = factHtml('wait', 'ждём GPS… без координат сохранить нельзя');
+  $('#fGps').innerHTML = g;
+  updateSaveBtn();
+}
+function volValid(r) { return r && r.vol != null && r.vol > 0 && r.vol <= 100; }
+function updateSaveBtn() {
+  const r = R, b = $('#rvSave');
+  b.disabled = !(r && r.img && r.pos && volValid(r) && auth.name);
+  b.textContent = r && !r.pos ? 'Ждём GPS…' : 'Сохранить';
+}
+function renderSizes() {
+  const r = R, list = sizes();
+  $('#rvSizes').innerHTML = list.map(v => `<button type="button" data-v="${v}" class="${r && !r.other && r.vol === v ? 'on' : ''}">${fmtVol(v)}</button>`).join('')
+    + `<button type="button" data-v="other" class="${r && r.other ? 'on' : ''}">Другой</button>`;
+  $('#rvVolOther').hidden = !(r && r.other);
+}
+function discardReview(fromPop) {
+  const r = R; if (!r) return;
+  r.closed = true; fixListeners.delete(r.onFix);
+  if (r.url) URL.revokeObjectURL(r.url);
+  R = null; closeSheet($('#review'), fromPop);
+}
+function queueSave() {
+  const r = R;
+  if (!r || !r.img) return toast('Фото ещё открывается…');
+  if (!r.pos) return toast('Дождитесь GPS — без координат сохранить нельзя');
+  if (!volValid(r)) return toast('Укажите размер контейнера');
+  if (!auth.name) return toast('Сначала введите код подрядчика');
+  const num = ++S.lastNum, comment = ($('#rvComment').value || '').trim(), contractor = auth.name;
+  S.vol = r.vol; saveS();
+  r.closed = true; fixListeners.delete(r.onFix); R = null;
+  closeSheet($('#review'));
+  st.pending++; renderPending();
+  st.saving = st.saving
+    .then(() => doSave(r, num, comment, contractor))
+    .catch(e => toast('Снимок № ' + num + ' не сохранился: ' + (e && e.message || e), 7000))
+    .finally(() => { URL.revokeObjectURL(r.url); r.img = null; st.pending--; renderPending(); if (!st.pending && cloudUrl()) uploadAll(); });
+}
+async function doSave(r, num, comment, contractor) {
+  await Promise.race([r.timeP, sleep(5000)]);
+  if (r.timeSrc === 'pending') { r.timeSrc = 'phone'; r.t = r.tPhone; }
+  await Promise.race([r.addrP || Promise.resolve(), sleep(10000)]);
+  const d = { t: r.t, timeSrc: r.timeSrc, pos: r.pos, address: r.address || null, num, vol: r.vol, contractor, comment };
+  const c = document.createElement('canvas');
+  renderPhoto(c, r.img, PHOTO.maxSide, d);
+  const W = c.width, H = c.height;
+  let bytes = new Uint8Array(await readAB(await canvasToBlob(c, 'image/jpeg', PHOTO.quality)));
+  try { bytes = insertExif(bytes, buildExif(d, W, H)); } catch (e) { console.warn('EXIF', e); }
+  const crc = crc32(bytes), photo = new Blob([bytes], { type: 'image/jpeg' });
+  bytes = null;
+  const tc = document.createElement('canvas'), [tw, th] = fitSize(W, H, 320);
+  tc.width = tw; tc.height = th;
+  const tctx = tc.getContext('2d'); tctx.imageSmoothingQuality = 'high'; tctx.drawImage(c, 0, 0, tw, th);
+  const thumb = await canvasToBlob(tc, 'image/jpeg', 0.75);
+  c.width = c.height = 0; tc.width = tc.height = 0;
+  const p = r.pos;
+  const meta = { v: 3, num, t: d.t, tPhone: r.tPhone, timeSrc: d.timeSrc, offset: r.offset, tz: tzName(),
+    lat: p.lat, lon: p.lon, acc: p.acc, alt: p.alt, address: d.address, vol: d.vol, contractor, code: S.code, comment,
+    w: W, h: H, bytes: photo.size, crc, thumb };
+  meta.flags = computeFlags(meta);
+  meta.id = await dbAdd(meta, photo);
+  st.items.push(meta); st.items.sort((a, b) => b.t - a.t || b.num - a.num);
+  up.queued = !!cloudUrl();   // сейчас уйдёт в облако — кнопку «Отправить» не показываем
+  refresh();
+  toast(`№ ${num} сохранён`);
+  try { navigator.vibrate && navigator.vibrate(25); } catch (e) {}
+  if (!st.persistAsked) { st.persistAsked = true; try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {} }
+  if (!d.address) setTimeout(fillAddresses, 15000);
+}
+// адрес для снимков, сделанных без сети: дописывается в журнал и таблицу (на самом фото остаётся как было)
+async function fillAddresses() {
+  if (st.filling || navigator.onLine === false) return;
+  st.filling = true;
+  const changed = [];
+  try {
+    for (const it of st.items.filter(i => i.lat != null && !i.address && i.v >= 2 && !isDone(i))) {
+      const a = await geocode(it.lat, it.lon).catch(() => null);
+      if (!a) break;
+      it.address = a;
+      it.flags = (it.flags || []).filter(f => f !== 'адрес не определён').concat('адрес определён после съёмки (на фото его нет)');
+      changed.push(it);
+    }
+    if (changed.length) await dbPutMetas(changed);
+  } finally { st.filling = false; if (changed.length) refresh(); }
+}
+
+/* ===================== просмотр снимка ===================== */
+async function openViewer(id) {
+  const it = st.items.find(x => x.id === id); if (!it) return;
+  let blob;
+  try { blob = await dbGetImg(id); } catch (e) { return toast('Не удалось открыть: ' + e.message, 4000); }
+  st.view = { it, url: URL.createObjectURL(blob) };
+  $('#vwImg').src = st.view.url;
+  $('#vwTitle').textContent = '№ ' + it.num;
+  const rows = [
+    ['Время', `${fmtDate(it.t)} ${fmtTime(it.t)} ${tzLabel(it.t)}`],
+    ['Адрес', it.address ? esc(it.address) : '<span class="warn">не определён</span>'],
+    ['GPS', it.lat != null ? `<a class="mono" href="${esc(mapUrl(it.lat, it.lon))}" target="_blank" rel="noopener">${fmtCoord(it.lat)}, ${fmtCoord(it.lon)}</a><div class="muted sm">точность ±${Math.round(it.acc)} м</div>` : 'нет данных'],
+    ['Контейнер', it.vol ? fmtVol(it.vol) : '—'],
+    ['Комментарий', it.comment ? esc(it.comment).replace(/\n/g, '<br>') : '—'],
+    (it.flags || []).length ? ['Отметки', `<span class="warn">${esc(it.flags.join('; '))}</span>`] : null,
+    cloudUrl()
+      ? ['Заказчику', it.up ? `отправлен ${fmtDate(it.up)} в ${fmtTime(it.up).slice(0, 5)}${it.upN ? ` · строка № ${it.upN} в таблице` : ''}`
+        : it.upErr ? `<span class="warn">облако не приняло: ${esc(it.upErr)}</span>` : 'ещё не отправлен']
+      : ['Отчёт', it.sent ? `отправлен ${fmtDate(it.sent)}` : 'ещё не отправлен'],
+  ].filter(Boolean);
+  $('#vwInfo').innerHTML = rows.map(([k, v]) => `<div class="fact"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
+  openSheet($('#viewer'));
+}
+function closeViewer(fromPop) {
+  if (st.view) { URL.revokeObjectURL(st.view.url); st.view = null; }
+  $('#vwImg').removeAttribute('src');
+  closeSheet($('#viewer'), fromPop);
+}
+
+/* ===================== отправка отчёта ===================== */
+async function startSend(items) {
+  if (!items.length) return toast('Нет снимков для отправки');
+  if (st.pending) await st.saving;
+  const job = { cancelled: false, blob: null, name: '', items };
+  st.exp = job;
+  $('#expTitle').textContent = 'Готовлю отчёт';
+  $('#expText').textContent = '';
+  $('#expSend').hidden = true; $('#expBarWrap').hidden = false; $('#expBar').style.width = '0%';
+  openSheet($('#exp'));
+  try {
+    job.blob = await buildExport(items, (i, n) => {
+      if (job.cancelled) throw new Error('cancel');
+      $('#expBar').style.width = Math.round(i / n * 100) + '%';
+      $('#expText').textContent = `Фото ${i} из ${n}`;
+    });
+  } catch (e) {
+    if (job.cancelled) return;
+    $('#expTitle').textContent = 'Не получилось';
+    $('#expText').textContent = (e && e.message) || String(e);
+    $('#expBarWrap').hidden = true;
+    return;
+  }
+  if (job.cancelled) return;
+  job.name = exportName(items);
+  job.file = new File([job.blob], job.name, { type: 'application/zip' });
+  job.share = canShareFile(job.file);
+  $('#expTitle').textContent = 'Отчёт готов';
+  $('#expText').textContent = `${snimkov(items.length)} · ${fmtSize(job.blob.size)}. `
+    + (cloudUrl() ? 'Снимки и так уходят заказчику сами — это запасная копия. ' : '')
+    + (job.share ? 'Нажмите «Отправить» и выберите мессенджер или почту заказчика.' : 'Архив сохранится в «Загрузки» — отправьте его заказчику в мессенджере или по почте.');
+  $('#expSend').textContent = job.share ? 'Отправить' : 'Сохранить архив';
+  $('#expBarWrap').hidden = true; $('#expSend').hidden = false;
+}
+async function sendReady() {
+  const job = st.exp; if (!job || !job.blob) return;
+  let shared = false;
+  if (job.share) {
+    try { await navigator.share({ files: [job.file] }); shared = true; }
+    catch (e) { if (e && e.name === 'AbortError') return; }   // передумал — ничего не делаем; телефон не дал поделиться — сохраним
+  }
+  if (!shared) downloadBlob(job.blob, job.name);
+  const now = Date.now();
+  job.items.forEach(it => { it.sent = now; });
+  try { await dbPutMetas(job.items); } catch (e) {}
+  closeExport();
+  refresh();
+  toast(shared ? 'Отчёт отправлен' : 'Архив сохранён в «Загрузки» — отправьте его заказчику из приложения «Файлы»', 6000);
+}
+function closeExport(fromPop) { if (st.exp) { st.exp.cancelled = true; st.exp = null; } closeSheet($('#exp'), fromPop); }
+
+/* ===================== отправка в облако заказчика ===================== */
+// Снимки уходят сами: сразу после сохранения, при появлении сети, при открытии приложения и раз в минуту, если что-то не ушло.
+// Функция в Yandex Cloud кладёт фото на Диск заказчика в папку подрядчика и дописывает строку в общую таблицу.
+// Тот же снимок сервер узнаёт по содержимому и строку не задваивает — повторять отправку можно смело.
+function blobToB64(blob) {
+  return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = () => rej(fr.error); fr.readAsDataURL(blob); });
+}
+async function uploadOne(it) {
+  const jpg = await blobToB64(await dbGetImg(it.id)), m = {};
+  ['num', 't', 'tPhone', 'timeSrc', 'offset', 'lat', 'lon', 'acc', 'alt', 'address', 'vol', 'comment', 'flags'].forEach(k => { m[k] = it[k]; });
+  let r, j = null;
+  try { r = await fetchTimeout(cloudUrl(), 120000, { method: 'POST', body: JSON.stringify({ a: 'up', code: it.code || S.code, m, jpg }) }); }
+  catch (e) { throw new Error(navigator.onLine === false ? 'нет интернета' : 'нет связи с облаком'); }
+  try { j = await r.json(); } catch (e) {}
+  if (j && j.ok) return j;
+  const busy = r.status === 429 || (j && j.error === 'busy');   // облако занято (лимит одновременных запросов)
+  const e = new Error(busy ? 'облако занято' : (j && j.message) || `облако ответило ошибкой ${r.status}`);
+  e.code = busy ? 'busy' : j && j.error;
+  throw e;
+}
+async function uploadAll(manual) {
+  up.queued = false;
+  if (up.busy || st.pending || !cloudUrl() || !S.code || !auth.name) return renderMain();
+  if (navigator.onLine === false) {
+    up.err = 'нет интернета'; refresh();
+    if (manual) toast('Нет интернета — снимки уйдут сами, когда появится сеть', 5000);
+    return;
+  }
+  up.busy = true; up.err = null; up.done = up.total = 0; refresh();
+  let sent = 0;
+  try {
+    if (unsent().some(i => !i.address && i.lat != null)) await fillAddresses().catch(() => {});
+    const list = unsent().sort((a, b) => a.t - b.t || a.num - b.num);
+    up.total = list.length; renderPending();
+    for (const it of list) {
+      if (!st.items.includes(it)) continue;      // удалили, пока шла отправка
+      try {
+        const j = await uploadOne(it);
+        it.up = Date.now(); it.upN = j.n; delete it.upErr;
+        sent++;
+      } catch (e) {
+        // снимок повреждён или снят под прежним, уже отключённым кодом — помечаем и идём дальше; остальное — повторим позже
+        if (e.code === 'bad' || (e.code === 'code' && it.code && it.code !== S.code)) it.upErr = e.message;
+        else throw e;
+      }
+      await dbPutMetas([it]);
+      up.done++; renderShots(); renderPending();
+    }
+    up.retryAt = 0;
+  } catch (e) {
+    up.err = (e && e.message) || String(e);
+    up.retryAt = Date.now() + (e && e.code === 'busy' ? 15000 + Math.random() * 15000 : 60000);
+    if (manual) toast('Не отправилось: ' + up.err + '. Отправлю сам позже.', 6000);
+  } finally {
+    up.busy = false; refresh();
+  }
+  if (sent && (manual || sent > 1)) toast(`Отправлено заказчику: ${snimkov(sent)}`, 3500);
+}
+
+/* ===================== настройки ===================== */
+async function renderSettings() {
+  $('#setWho').textContent = auth.name || 'не выбран';
+  $('#changeWho').textContent = auth.name ? 'Сменить код' : 'Ввести код';
+  const total = st.items.reduce((s, i) => s + fileBytes(i), 0), sent = st.items.filter(isDone).length;
+  $('#resendAll').hidden = !st.items.length;
+  $('#resendAll').textContent = cloudUrl() ? 'Сохранить архив всех снимков' : 'Отправить все снимки заново';
+  $('#clearSent').hidden = !sent;
+  $('#about').textContent = `Версия ${VERSION}, сборка ${BUILD}. Приложение обновляется само — переустанавливать не нужно, снимки сохраняются. `
+    + 'Не удаляйте его с экрана: на iPhone вместе с иконкой удаляются снимки. '
+    + `Дата и время сверяются с сервером и пишутся по ${tzName() === 'Europe/Moscow' ? 'московскому времени' : tzName()}, адрес — по GPS; изменить их нельзя. `
+    + (cloudUrl() ? 'Снимки сами уходят заказчику в облако.' : 'Таблица в отчёте защищена от правки.');
+  renderInstall();
+  let txt = `${snimkov(st.items.length)} · ${fmtSize(total)}` + (st.items.length ? ` · отправлено ${sent}` : '');
+  try { if (navigator.storage && navigator.storage.persisted && await navigator.storage.persisted()) txt += ' · защищено от автоочистки'; } catch (e) {}
+  $('#storeInfo').textContent = txt;
+}
+function renderInstall() {
+  const t = $('#installText'), b = $('#installBtn');
+  b.hidden = true;
+  if (!window.isSecureContext) t.textContent = 'Сейчас приложение открыто как файл — установка и GPS недоступны. Откройте его по https-ссылке.';
+  else if (isStandalone()) t.textContent = 'Установлено ✓ Запускайте с иконки — работает без интернета.';
+  else if (isIOS) t.textContent = 'Откройте эту страницу в Safari → кнопка «Поделиться» (квадрат со стрелкой) → «На экран „Домой“». Дальше запускайте с иконки.';
+  else if (st.bip) { t.textContent = 'Приложение появится на главном экране и будет работать без интернета.'; b.hidden = false; }
+  else t.textContent = 'В Chrome: меню ⋮ → «Установить приложение» (или «Добавить на главный экран»). Дальше запускайте с иконки.';
+}
+async function doInstall() {
+  const e = st.bip; if (!e) return;
+  e.prompt();
+  try { await e.userChoice; } catch (_) {}
+  st.bip = null; renderInstall(); renderBanner();
+}
+function openSettings() { renderSettings(); openSheet($('#settings')); }
+
+/* ===================== события ===================== */
+function bind() {
+  $('#gpsChip').addEventListener('click', () => { if (gpsLevel() !== 'good' && gpsLevel() !== 'mid') toast($('#gpsLine').textContent || denyHelp(), 7000); });
+  $('#setBtn').addEventListener('click', openSettings);
+  $('#setClose').addEventListener('click', () => closeSheet($('#settings')));
+  $('#bnClose').addEventListener('click', () => { S.hideBanner = true; saveS(); renderBanner(); });
+  $('#bnAct').addEventListener('click', () => st.bip ? doInstall() : openSettings());
+
+  // вход
+  $('#changeWho').addEventListener('click', openOnboard);   // поверх настроек; после входа вернёмся в них
+  $('#obClose').addEventListener('click', () => closeSheet($('#onboard')));
+  $('#obGo').addEventListener('click', tryCode);
+  $('#obCode').addEventListener('input', e => {
+    const d = e.target.value.replace(/\D/g, '').slice(0, 12);
+    e.target.value = d.replace(/(\d{4})(?=\d)/g, '$1-');
+  });
+  $('#obCode').addEventListener('keydown', e => { if (e.key === 'Enter') tryCode(); });
+
+  // съёмка
+  $('#shutter').addEventListener('click', e => {
+    if (!auth.name) { e.preventDefault(); openOnboard(); return; }
+    capturing = true;
+  });
+  $('#fileInput').addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    e.target.value = ''; capturing = false;
+    if (!f) return;
+    const now = Date.now(), lm = f.lastModified;
+    if (lm && now - lm > FRESH_MS) { toast('Принимаются только фото, снятые сейчас камерой приложения.', 5000); return; }
+    openReview(f, lm && lm <= now + 60000 ? Math.min(lm, now) : now);
+  });
+  $('#rvComment').addEventListener('input', () => schedulePreview());
+  $('#rvSizes').addEventListener('click', e => {
+    const b = e.target.closest('button'), r = R; if (!b || !r) return;
+    if (b.dataset.v === 'other') {
+      r.other = true;
+      const v = parseFloat($('#rvVolOther').value.replace(',', '.'));
+      r.vol = isFinite(v) ? v : null;
+      renderSizes(); $('#rvVolOther').focus();
+    } else { r.other = false; r.vol = +b.dataset.v; renderSizes(); }
+    updateSaveBtn(); schedulePreview(0);
+  });
+  $('#rvVolOther').addEventListener('input', e => {
+    const r = R; if (!r) return;
+    e.target.value = e.target.value.replace(/[^\d.,]/g, '');
+    const v = parseFloat(e.target.value.replace(',', '.'));
+    r.vol = isFinite(v) ? Math.round(v * 10) / 10 : null;
+    updateSaveBtn(); schedulePreview();
+  });
+  $('#rvSave').addEventListener('click', queueSave);
+  $('#rvCancel').addEventListener('click', () => { if (confirm('Удалить этот снимок без сохранения?')) discardReview(); });
+  backHandlers.set($('#review'), () => {
+    if (confirm('Снимок не сохранён. Выйти без сохранения?')) discardReview(true);
+    else { try { history.pushState({ ff: 1 }, ''); } catch (e) {} }
+  });
+  window.addEventListener('resize', () => { if (R) schedulePreview(150); });
+
+  // снимки и отчёт
+  $('#shots').addEventListener('click', e => { const s = e.target.closest('.shot'); if (s) openViewer(+s.dataset.id); });
+  $('#sendBtn').addEventListener('click', () => cloudUrl() ? uploadAll(true) : startSend(unsent()));
+  $('#expSend').addEventListener('click', sendReady);
+  $('#expClose').addEventListener('click', () => closeExport());
+  backHandlers.set($('#exp'), () => closeExport(true));
+  $('#exp').addEventListener('click', e => { if (e.target.id === 'exp') closeExport(); });
+  $('#vwClose').addEventListener('click', () => closeViewer());
+  backHandlers.set($('#viewer'), () => closeViewer(true));
+  $('#vwDel').addEventListener('click', async () => {
+    const v = st.view; if (!v || !confirm(`Удалить снимок № ${v.it.num} с телефона?`)) return;
+    try { await dbDel([v.it.id]); dropItems([v.it.id]); closeViewer(); refresh(); toast('Удалено'); }
+    catch (e) { toast('Не удалось удалить: ' + e.message, 4000); }
+  });
+
+  // настройки
+  $('#resendAll').addEventListener('click', () => startSend(st.items));
+  $('#clearSent').addEventListener('click', async () => {
+    const ids = st.items.filter(isDone).map(i => i.id); if (!ids.length) return;
+    if (!confirm(`Удалить с телефона ${snimkov(ids.length)}, которые уже отправлены?`)) return;
+    try { await dbDel(ids); dropItems(ids); refresh(); toast('Удалено: ' + snimkov(ids.length)); }
+    catch (e) { toast('Не удалось удалить: ' + e.message, 4000); }
+  });
+  $('#installBtn').addEventListener('click', doInstall);
+
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); st.bip = e; renderInstall(); renderBanner(); });
+  window.addEventListener('appinstalled', () => { st.bip = null; renderInstall(); renderBanner(); });
+  window.addEventListener('online', () => { syncClock(); cloudUrl() ? uploadAll() : fillAddresses(); });
+  window.addEventListener('offline', () => renderMain());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') { capturing = false; if (auth.name) geoStart(); renderGps(); checkUpdate(); if (unsent().length) uploadAll(); }
+    else if (!capturing) geoStop();
+  });
+  window.addEventListener('beforeunload', e => { if (st.pending) { e.preventDefault(); e.returnValue = ''; } });
+}
+
+/* ===================== обновления без переустановки ===================== */
+// Каждая публикация меняет метку сборки в sw.js → браузер сам скачивает новую версию в фоне.
+// Как только она готова, приложение перезапускается в «тихий» момент: не во время съёмки, сохранения или отправки.
+// Снимки (IndexedDB) обновлением не затрагиваются.
+const upd = { reg: null, need: false, changes: 0 };
+function safeToReload() { return document.visibilityState === 'visible' && !capturing && !R && !st.pending && !sheetStack.length && !st.exp && !up.busy; }
+function maybeReload() {
+  if (!upd.need || !safeToReload()) return;
+  upd.need = false;
+  try { sessionStorage.setItem('fotofix.updated', '1'); } catch (e) {}
+  location.reload();
+}
+function setupSW() {
+  if (!('serviceWorker' in navigator) || !(location.protocol === 'https:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname))) return;
+  const had = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (had || ++upd.changes > 1) { upd.need = true; maybeReload(); } });
+  navigator.serviceWorker.register('sw.js').then(reg => { upd.reg = reg; }).catch(() => {});
+}
+function checkUpdate() { if (upd.reg) upd.reg.update().catch(() => {}); }
+
+async function init() {
+  bind();
+  await initAuth();
+  try { st.items = (await dbAll()).sort((a, b) => b.t - a.t || b.num - a.num); }
+  catch (e) { toast('Хранилище недоступно: ' + (e && e.message || e), 8000); }
+  if (S.lastNum == null) { S.lastNum = st.items.reduce((m, i) => Math.max(m, i.num || 0), 0); saveS(); }
+  if (auth.name) geoStart();
+  renderMain();
+  if (!auth.name && window.isSecureContext) openOnboard();
+  setInterval(() => { if (document.visibilityState === 'visible') renderGps(); if (upd.need) maybeReload(); }, 1000);
+  setInterval(checkUpdate, 30 * 60000);
+  setInterval(() => { if (cloudUrl() && !up.busy && document.visibilityState === 'visible' && Date.now() >= up.retryAt && unsent().length) uploadAll(); }, 15000);
+  syncClock(); cloudUrl() ? uploadAll() : fillAddresses();
+  setupSW();
+  try { if (sessionStorage.getItem('fotofix.updated')) { sessionStorage.removeItem('fotofix.updated'); toast(`Приложение обновлено до версии ${VERSION}`, 4000); } } catch (e) {}
+}
+init();
+</script>
+</body>
+</html>

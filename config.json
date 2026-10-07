@@ -1,0 +1,83 @@
+{
+ "v": 1,
+ "tz": "Europe/Moscow",
+ "sizes": [
+  8,
+  20,
+  27
+ ],
+ "kdf": {
+  "salt": "4ZUw3QTyuAaptpxOSCJ0Og==",
+  "iter": 600000
+ },
+ "contractors": [
+  {
+   "tag": "d7f423234817c25b",
+   "iv": "beiCLILTJVaiSij4",
+   "ct": "WXaX6qDOFq1ouHd+RrhW/jXoO0SNvg6LGNLZor+zij70//Gww76vujll+zQmb7GoEw=="
+  },
+  {
+   "tag": "8c896d6473fb57c5",
+   "iv": "3rL6fkmQs+pJ6utP",
+   "ct": "n5m8nceV9o0OF51UaXZMRkhe6XOQQ0gNg6ViP24jd5Bmk52C9iRgZUreZOUB+ORXqQ=="
+  },
+  {
+   "tag": "9a93318a9b8c0149",
+   "iv": "CEQQkLWxdWO4zqJD",
+   "ct": "A80R5Ja8IjwSjHBxWyIIY4FOf4fMNhnV/pDaYj2kLZTmgV9nKqN30i5+Sa02VIcCug=="
+  },
+  {
+   "tag": "c1f698ef06eada12",
+   "iv": "FIp07e4Udab4m+UJ",
+   "ct": "CPp23aSjt2H/unIKuz0WRHgZjrdaMbj+PM1ZYhwCZ/a+PtsTMS4ljDW+gPm+2Lv0rg=="
+  },
+  {
+   "tag": "535ecadad661a441",
+   "iv": "WT6eOoyMrRz8JrvK",
+   "ct": "Bg48nYBFdJrclShnB+aSO2o++jUPaxMVQ+qiqMmpdEc6xTFOWqRbQifJDlerDVL/Pw=="
+  },
+  {
+   "tag": "25345cb06517824e",
+   "iv": "MOT2XdWe5x5uG92r",
+   "ct": "iBz+In5wTphAW8Bll0I/X2VTfEAIKCJqZvSCGtZSNg/pEmSnbRl/t1WZrhIoM5KV5w=="
+  },
+  {
+   "tag": "4ced05b13cf8ec37",
+   "iv": "L/q3uDdWFHwmoAzQ",
+   "ct": "b8abB41bVyCmGOSexqwi/HBiMTOAe/26X//z0gqyqISFEASyUB+7zxykG2obUUpHhoY3NJyGuobPEkVVkYR/YPo="
+  },
+  {
+   "tag": "cc0bbc12f0f1b188",
+   "iv": "dVTu4A2DMp8gb1vu",
+   "ct": "ph0WTibRINtQBMTa3vvTxkGvp7s53Fb5/htpuLro1WICGhInmD4njwpkkyNEg0hFZw=="
+  },
+  {
+   "tag": "29abf7a8b9d87d86",
+   "iv": "bg1clHOeTFH+xCpA",
+   "ct": "KmTrEYlY3jmBC3w0UBn0ijikENk64JGa6U4WRtgEwcGczF9lUxT9EgbUTolkwvtxAg=="
+  },
+  {
+   "tag": "ebf268f6efdbee54",
+   "iv": "B3zjwM24Bvhz1Z6W",
+   "ct": "JpCd1Z1+s5XExa1SX36TMnbi7sQdJoJSkkjtWJVnE0A9n8+VqozcxJ5nw+4KCj8KdA=="
+  },
+  {
+   "tag": "25e67b5256f2a946",
+   "iv": "iIFMVXPl4lDeYogf",
+   "ct": "6nQ36ZOEIYq9gPO1vBdoK6g7jxq29mRH902soBi/XmIp5dT4t4CZp7dO0/9a1ekFXiPxM8TF5QkV+IK9baD7hOc="
+  },
+  {
+   "tag": "3a977567b0f91231",
+   "iv": "ChRBtL5GVllFSFHT",
+   "ct": "AFfL0wgLaCmwa9xMozgkh7TlAlCKrFeB067qZ3T8iOFWCUxE1Fu+b61QVHEwOLOH/A=="
+  }
+ ],
+ "xlsx": {
+  "salt": "525aiNqQnXCkuMICDHFZxg==",
+  "hash": "jSGzIqlCIJIQ0j1VCI9t9G980Gv2b8b93OgjbmP/kJGkKTl/SMxkT1iGM8JvysclTSDvrkQvGPV4LOEmMC5LlQ==",
+  "spin": 100000
+ },
+ "cloud": {
+  "url": "https://functions.yandexcloud.net/d4e18bko235qrbf7k4ev"
+ }
+}
